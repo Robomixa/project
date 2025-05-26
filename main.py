@@ -1,19 +1,10 @@
 """ es pirmo reizi dzīvē darbojos ar šo frameworku, tāpēc nezinu līdz galam, kā tas strādā, 
 bet visas funkcijas ir paņemtas no Flask dokumentācijas un sky.pro pamācības """
 
-# pip install Flask
 
-# сделать так, чтобы можно было выбирать роль при регистрации
-# добавить кнопку выхода из профиля
-# везде добавить кнопки " Iziet"
 
 from flask import Flask, render_template, request, redirect, url_for, flash, session
-# render template - HTML lejupielādēšanai
-# request - lai saņemtu datus no reģistrēšanas formas
-# redirect - lai novirzītu lietotāju uz citu lapu
-# url for - URL ģenerēšanai
-# flash - kļūdas paziņojumu nosūtīšanai
-# session - lietotāja datu glabāšanai sesijas laikā
+from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 from datetime import datetime # lai piefiksētu datumu un laiku, kad tika pievienots jauns pieteikums
 
@@ -89,7 +80,7 @@ def login():
         user = conn.execute('SELECT * FROM users WHERE username=? AND password =?', 	  	
                     (request.form['username'], request.form['password'])).fetchone() 
         conn.close()
-        if user:
+        if user and check_password_hash(user['password'], request.form['password']):
             session.update({'username': user['username'], 'role': user['role']})
             return redirect(url_for('profile'))
         else:
@@ -103,8 +94,10 @@ def register():
         data = request.form # saņem ievadītus datus no formas
         conn = database_connection()
         cursor = conn.cursor()
+        hashed_password = generate_password_hash(data['password'])
         cursor.execute('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', 
-                     (data['username'], data['password'], 'klients')) # datubāzē (tabulā "users") ievada jaunu ievadītu info
+                       (data['username'], hashed_password, 'klients'))
+         # datubāzē (tabulā "users") ievada jaunu ievadītu info
         user_id = cursor.lastrowid # saņem jauna lietotāja ID
         cursor.execute('''INSERT INTO clients (first_name, last_name, birth_date, personal_code, phone_number, driving_license, user_id) 
                       VALUES (?, ?, ?, ?, ?, ?, ?)''', (data['first_name'], data['last_name'], data['birth_date'], data['personal_code'], 
@@ -125,23 +118,6 @@ def profile():
     conn.close()
     return render_template('profile.html', user=user, client=client)
 
-# @app.route('/profile')
-# def profile():
-#     user = session.get('username') # dabū lietotājvārdu no sesijas (ja lietotājs jau ir autorizējies)
-#     if not user:
-#         return redirect(url_for('login')) # ja vēl nav autorizējies, tad aizsūta lietotāju uz autorizēšanās lapu
-
-#     conn = database_connection()
-#     user_data = conn.execute('SELECT * FROM users WHERE username = ?', (user,)).fetchone()
-
-#     if not user_data: # ja lietotājs nav atrasts
-#         conn.close()
-#         session.clear()
-#         return redirect(url_for('login'))
-    
-#     #client_data = conn.execute('SELECT * FROM clients WHERE user_id = ?', (user['id'],)).fetchone()
-#     conn.close()
-#     return render_template('profile.html', user=user_data)
 
 @app.route('/edit_profile', methods=['GET', 'POST'])
 def edit_profile():
