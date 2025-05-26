@@ -18,7 +18,7 @@ import sqlite3
 from datetime import datetime # lai piefiksētu datumu un laiku, kad tika pievienots jauns pieteikums
 
 app = Flask(__name__)
-app.secret_key = 'L2GB3ECF8VB325U' # sesijas datu saglabāšanai
+app.secret_key = 'some_random_secret_key' # sesijas datu saglabāšanai
 
 # --- FUNKCIJAS ---
 
