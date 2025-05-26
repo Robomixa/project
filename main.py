@@ -78,13 +78,15 @@ def register():
         data = request.form
         conn = database_connection()
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO users (username, password, role) VALUES(?, ? , ?)',  			       (data['username'], data['password'], 'klients')) 
+        cursor.execute('INSERT INTO users (username, password, role) VALUES(?, ? , ?)',
+                        (data['username'], data['password'], 'klients')) 
  user_id = cursor.lastrowid
-        cursor.execute('''INSERT INTO clients (first_name, last_name, birth_date, 			               personal_code, phone_number, driving_license, user_id) 
-                      VALUES ((?, ?, ?, ?, ?, ?, ?)''', (data['first_name'], data['last_name'],  
-                      data['birth_date'],  
-                      data['personal_code'], data['phone_number'], 
-                      data['driving_license'], user_id))
+        cursor.execute('''INSERT INTO clients (first_name, last_name, birth_date,
+                    personal_code, phone_number, driving_license, user_id) 
+                    VALUES ((?, ?, ?, ?, ?, ?, ?)''', (data['first_name'], data['last_name'],  
+                    data['birth_date'],  
+                    data['personal_code'], data['phone_number'], 
+                    data['driving_license'], user_id))
         conn.commit()
         conn.close()
         flash('Registration successful!', 'success')
