@@ -84,29 +84,16 @@ def index():
 # AUTORIZĒŠANĀS
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST': # ja dati ir ievadīti
+    if request.method == 'POST':
         conn = database_connection()
-
-        username = request.form['username']
-        password = request.form['password']
-        query = f"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'"
-        user = conn.execute(query).fetchone()
+        user = conn.execute('SELECT * FROM users WHERE username=? AND password =?', 	  	
+                    (request.form['username'], request.form['password'])).fetchone() 
         conn.close()
         if user:
-            session['user_id'] = user['id']
-            session['role'] = user['role']
-            return redirect(url_for('home'))
+            session.update({'username': user['username'], 'role': user['role']})
+            return redirect(url_for('profile'))
         else:
             flash('Nepareizs lietotājvārds vai parole!', 'kļūda')
-            
-        '''user = conn.execute('SELECT * FROM users WHERE username = ? AND password = ?', 
-                            (request.form['username'], request.form['password'])).fetchone() # pārbauda, vai datubāzē (tabulā "users") ir tāds lietotājs
-        conn.close()
-        if user: # ja user ir atrasts datubāzē
-            session.update({'username': user['username'], 'role': user['role']}) # sesijā saglabājās lietotāja informācija 
-            return redirect(url_for('profile')) # pāriet uz profila logu
-        else: # ja user nav atrasts datubāzē
-            flash('Nepareizs lietotājvārds vai parole!', 'kļūda')'''
     return render_template('login.html')
 
 # JAUNA LIETOTĀJA REĢISTRĀCIJA
